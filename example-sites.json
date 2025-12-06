@@ -1,0 +1,55 @@
+{
+  "sites": [
+    {
+      "category": "",
+      "url": "https://app.gb-coding.nl",
+      "description": "Centrale homepage met overzicht van al je projecten en blogs."
+    },
+    {
+      "category": "📝 Productiviteit & Planning",
+      "url": "https://hours.gb-coding.nl",
+      "description": "Urenregistratie voor projecten of werk."
+    },
+    {
+      "category": "📝 Productiviteit & Planning",
+      "url": "https://km.gb-coding.nl",
+      "description": "Kilometerregistratie voor ritten en zakelijke kilometers."
+    },
+    {
+      "category": "📝 Productiviteit & Planning",
+      "url": "https://todo.gb-coding.nl",
+      "description": "Persoonlijke en professionele takenlijst met overzichtelijke interface."
+    },
+    {
+      "category": "💻 Beheer & Licenties",
+      "url": "https://license.gb-coding.nl",
+      "description": "Beheer software- en toollicenties centraal."
+    },
+    {
+      "category": "🎓 Leren & Skills",
+      "url": "https://skills.gb-coding.nl",
+      "description": "Tips, tutorials en programmeerkennis op één plek."
+    },
+    {
+      "category": "📊 Financieel & Investeringen",
+      "url": "https://bills.gb-coding.nl",
+      "description": "Houd je vaste lasten bij en krijg direct overzicht."
+    },
+    {
+      "category": "📊 Financieel & Investeringen",
+      "url": "https://invest.gb-coding.nl",
+      "description": "Beheer en volg je investeringen eenvoudig."
+    },
+    {
+      "category": "📊 Herstelgerelateerd",
+      "url": "https://stap10.gb-coding.nl",
+      "description": "Volg persoonlijke doelen en programma's."
+    },
+    {
+      "category": "📊 Herstelgerelateerd",
+      "url": "https://meetings.gb-coding.nl",
+      "description": "Persoonlijke log voor bezoeken van meetings."
+    }
+  ]
+}
+
