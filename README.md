@@ -72,7 +72,7 @@ You can load predefined sites from a remote JSON URL:
 
 See `example-sites.json` for a complete example of the JSON format.
 
-## Adding Custom Sites
+## Adding Custom Sites (Lovable)
 
 1. Click the FAB (Floating Action Button) in Settings
 2. Fill in:
@@ -85,5 +85,6 @@ See `example-sites.json` for a complete example of the JSON format.
 
 ## Hosting files
 1. Host files trough an AI generated hosting site:
-2. https://files.gb-coding.nl/
-3. Or use Github raw files. 
+2. https://files.gb-coding.nl/ this hosts file.
+3. Example: https://lakmgxwryavthaihyxjg.supabase.co/functions/v1/serve-json/hosting/lovable-sites.json
+4. Or use Github raw files. 
