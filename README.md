@@ -82,3 +82,8 @@ See `example-sites.json` for a complete example of the JSON format.
    - Description: Brief description
 3. Click "Toevoegen" to save
 
+
+## Hosting files
+1. Host files trough an AI generated hosting site:
+2. https://files.gb-coding.nl/
+3. Or use Github raw files. 
