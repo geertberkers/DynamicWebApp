@@ -85,15 +85,18 @@ fun AppRoot(
             is Tab.Site -> {
                 val siteIndex = tab.index
                 if (siteIndex in sites.indices) {
-                    SiteScreen(
-                        site = sites[siteIndex],
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(
-                                top = paddingValues.calculateTopPadding(),
-                                bottom = paddingValues.calculateBottomPadding()
-                            )
-                    )
+                    // Use key to preserve WebView state when switching tabs
+                    androidx.compose.runtime.key(siteIndex) {
+                        SiteScreen(
+                            site = sites[siteIndex],
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(
+                                    top = paddingValues.calculateTopPadding(),
+                                    bottom = paddingValues.calculateBottomPadding()
+                                )
+                        )
+                    }
                 }
             }
             is Tab.Settings -> {

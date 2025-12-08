@@ -1,55 +1,70 @@
 {
   "sites": [
     {
-      "category": "",
+      "name": "GB App",
+      "category": "📝 Website",
       "url": "https://app.gb-coding.nl",
       "description": "Centrale homepage met overzicht van al je projecten en blogs."
     },
     {
+      "name": "Urenregistratie",
       "category": "📝 Productiviteit & Planning",
       "url": "https://hours.gb-coding.nl",
       "description": "Urenregistratie voor projecten of werk."
     },
     {
+      "name": "Kilometerregistratie",
       "category": "📝 Productiviteit & Planning",
       "url": "https://km.gb-coding.nl",
       "description": "Kilometerregistratie voor ritten en zakelijke kilometers."
     },
     {
+      "name": "Todo Lijst",
       "category": "📝 Productiviteit & Planning",
-      "url": "https://todo.gb-coding.nl",
+      "url": "https://to-do.gb-coding.nl",
       "description": "Persoonlijke en professionele takenlijst met overzichtelijke interface."
     },
     {
+      "name": "Licentiebeheer",
       "category": "💻 Beheer & Licenties",
       "url": "https://license.gb-coding.nl",
       "description": "Beheer software- en toollicenties centraal."
     },
     {
+      "name": "Skills & Tutorials",
       "category": "🎓 Leren & Skills",
       "url": "https://skills.gb-coding.nl",
       "description": "Tips, tutorials en programmeerkennis op één plek."
     },
     {
+      "name": "Vaste Lasten",
       "category": "📊 Financieel & Investeringen",
       "url": "https://bills.gb-coding.nl",
       "description": "Houd je vaste lasten bij en krijg direct overzicht."
     },
     {
+      "name": "Investeringen",
       "category": "📊 Financieel & Investeringen",
       "url": "https://invest.gb-coding.nl",
       "description": "Beheer en volg je investeringen eenvoudig."
     },
     {
+      "name": "Persoonlijk Herstel",
       "category": "📊 Herstelgerelateerd",
       "url": "https://stap10.gb-coding.nl",
       "description": "Volg persoonlijke doelen en programma's."
     },
     {
+      "name": "Meeting Log",
       "category": "📊 Herstelgerelateerd",
       "url": "https://meetings.gb-coding.nl",
       "description": "Persoonlijke log voor bezoeken van meetings."
+    },
+    {
+      "name": "JSONHoster",
+      "category": "📝 Productiviteit & Planning",
+      "url": "https://files.gb-coding.nl",
+      "description": "Hosten van JSON files."
     }
   ]
 }
-

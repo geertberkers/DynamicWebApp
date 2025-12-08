@@ -1,5 +1,6 @@
 package webview
 
+import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,15 +14,28 @@ import androidx.compose.ui.viewinterop.AndroidView
 @Composable
 actual fun KmpWebView(url: String, modifier: Modifier) {
     val context = LocalContext.current
-    val webView = remember {
+    
+    // Cache WebView per URL to preserve state (cookies, session, scroll position)
+    val webView = remember(url) {
         WebView(context).apply {
             settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true // Enable localStorage
             webViewClient = WebViewClient()
         }
     }
     
+    // Enable cookies
+    DisposableEffect(Unit) {
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        cookieManager.setAcceptThirdPartyCookies(webView, true)
+        onDispose { }
+    }
+    
+    // Only load URL if it's different from current URL
     DisposableEffect(url) {
-        if (webView.url != url && url.isNotBlank()) {
+        val currentUrl = webView.url
+        if (url.isNotBlank() && (currentUrl == null || currentUrl != url)) {
             webView.loadUrl(url)
         }
         onDispose { }

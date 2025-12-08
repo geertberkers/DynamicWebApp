@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -165,25 +166,82 @@ class PredefinedSitesRepository(
                 return Result.failure(Exception("HTTP client not available"))
             }
             
-            val response: HttpResponse = httpClient.get(url)
+            // Try to load from the original URL first
+            var finalUrl = url
+            var response: HttpResponse = httpClient.get(url)
+            
+            // Check for redirects (3xx status codes) and follow them
+            var redirectCount = 0
+            val maxRedirects = 5 // Prevent infinite redirect loops
+            
+            while (response.status.value in 300..399 && redirectCount < maxRedirects) {
+                val location = response.headers["Location"]
+                if (location != null) {
+                    // Resolve relative URLs to absolute URLs
+                    finalUrl = when {
+                        location.startsWith("http://") || location.startsWith("https://") -> location
+                        location.startsWith("//") -> {
+                            val protocol = url.substringBefore("://")
+                            "$protocol:$location"
+                        }
+                        location.startsWith("/") -> {
+                            val protocol = url.substringBefore("://")
+                            val host = url.substringAfter("://").substringBefore("/")
+                            "$protocol://$host$location"
+                        }
+                        else -> {
+                            val baseUrl = url.substringBeforeLast("/")
+                            "$baseUrl/$location".replace("//", "/").replace(":/", "://")
+                        }
+                    }
+                    // Try again with the redirect URL
+                    response = httpClient.get(finalUrl)
+                    redirectCount++
+                } else {
+                    break // No Location header, can't follow redirect
+                }
+            }
+            
+            // Check HTTP status code before trying to deserialize
+            if (response.status.value !in 200..299) {
+                val errorMessage = when (response.status.value) {
+                    404 -> "Bestand niet gevonden (404). Controleer of de URL correct is."
+                    403 -> "Toegang geweigerd (403). Je hebt geen rechten om dit bestand te openen."
+                    500 -> "Serverfout (500). De server heeft een probleem."
+                    else -> "HTTP fout ${response.status.value}: ${response.status.description}"
+                }
+                return Result.failure(Exception(errorMessage))
+            }
+            
             val sitesResponse: SitesResponse = response.body()
             
             val sites = sitesResponse.sites.map { it.toPredefinedSite() }
             
-            // Save the URL for future use
-            settings.putString(remoteSitesUrlKey, url)
+            // Save the final URL (after redirect) for future use
+            settings.putString(remoteSitesUrlKey, finalUrl)
             
             // Save remote sites locally
             saveRemoteSites(sites)
             
             Result.success(sites)
         } catch (e: Exception) {
-            Result.failure(e)
+            // Provide a more user-friendly error message
+            val errorMessage = when {
+                e.message?.contains("404") == true -> "Bestand niet gevonden. Controleer of de URL correct is."
+                e.message?.contains("NoTransformationFoundException") == true -> "Ongeldig JSON-formaat. Controleer of de URL een geldig JSON-bestand retourneert."
+                e.message?.contains("Connection") == true -> "Kan geen verbinding maken. Controleer je internetverbinding."
+                else -> e.message ?: "Onbekende fout bij het laden van de URL."
+            }
+            Result.failure(Exception(errorMessage))
         }
     }
     
     fun getRemoteSitesUrl(): String? {
-        return settings.getStringOrNull(remoteSitesUrlKey)
+        return settings.getStringOrNull(remoteSitesUrlKey) ?: defaultSitesUrl
+    }
+    
+    fun getDefaultSitesUrl(): String {
+        return defaultSitesUrl
     }
     
     fun getSitesByCategory(): Map<String, List<PredefinedSite>> {

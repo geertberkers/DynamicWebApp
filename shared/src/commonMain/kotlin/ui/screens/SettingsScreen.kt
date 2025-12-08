@@ -18,7 +18,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,7 +53,16 @@ fun SettingsScreen(
     predefinedSitesRepository: PredefinedSitesRepository,
     onSitesChanged: (List<SiteConfig>) -> Unit
 ) {
-    var localSites by remember { mutableStateOf(sites) }
+    // Ensure we always have exactly 5 sites
+    var localSites by remember { 
+        mutableStateOf(
+            if (sites.size < 5) {
+                sites + List(5 - sites.size) { SiteConfig(id = sites.size + it) }
+            } else {
+                sites.take(5)
+            }
+        )
+    }
     var loadingIndex by remember { mutableStateOf<Int?>(null) }
     var errorMessages by remember { mutableStateOf<Map<Int, String>>(emptyMap()) }
     var showMaxSelectionDialog by remember { mutableStateOf(false) }
@@ -88,7 +97,7 @@ fun SettingsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddSiteDialog = true },
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(bottom = 80.dp) // Extra padding for bottom navigation bar
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -100,7 +109,10 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(
+                    top = paddingValues.calculateTopPadding(),
+                    bottom = paddingValues.calculateBottomPadding() + 80.dp // Extra padding for bottom navigation bar
+                )
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
@@ -116,29 +128,13 @@ fun SettingsScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
-            Row(
+            Button(
+                onClick = { showLoadFromUrlDialog = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .padding(bottom = 16.dp)
             ) {
-                Button(
-                    onClick = { showLoadFromUrlDialog = true },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Laad van URL")
-                }
-                
-                val remoteUrl = predefinedSitesRepository.getRemoteSitesUrl()
-                if (remoteUrl != null) {
-                    Text(
-                        text = "URL: $remoteUrl",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 8.dp)
-                    )
-                }
+                Text("Laad van URL")
             }
             
             // Predefined sites list
@@ -166,41 +162,59 @@ fun SettingsScreen(
                         if (currentSelectedCount >= 5) {
                             showMaxSelectionDialog = true
                         } else {
-                            // Find first empty slot or replace last one
-                            val emptyIndex = localSites.indexOfFirst { !it.isConfigured }
-                            val targetIndex = if (emptyIndex != -1) emptyIndex else currentSelectedCount
+                            // Ensure localSites has at least 5 items
+                            val sitesList = if (localSites.size < 5) {
+                                localSites.toMutableList().apply {
+                                    while (size < 5) {
+                                        add(SiteConfig(id = size))
+                                    }
+                                }
+                            } else {
+                                localSites.toMutableList()
+                            }
+                            
+                            // Find first empty slot or use next available index
+                            val emptyIndex = sitesList.indexOfFirst { !it.isConfigured }
+                            val targetIndex = if (emptyIndex != -1) emptyIndex else sitesList.size.coerceAtMost(4)
+                            
+                            // Ensure targetIndex is within bounds
+                            if (targetIndex >= sitesList.size) {
+                                while (sitesList.size <= targetIndex) {
+                                    sitesList.add(SiteConfig(id = sitesList.size))
+                                }
+                            }
                             
                             scope.launch {
                                 loadingIndex = targetIndex
                                 metadataService.fetchMetadata(predefinedSite.url).fold(
                                     onSuccess = { metadata ->
                                         val updatedSite = metadataService.applyToConfig(
-                                            old = localSites[targetIndex],
+                                            old = sitesList[targetIndex],
                                             metadata = metadata,
                                             url = predefinedSite.url
                                         ).copy(
-                                            title = metadata.title.ifBlank { 
-                                                predefinedSite.url.removePrefix("https://").removePrefix("http://")
+                                            title = predefinedSite.name.ifBlank { 
+                                                metadata.title.ifBlank {
+                                                    predefinedSite.url.removePrefix("https://").removePrefix("http://")
+                                                }
                                             }
                                         )
-                                        val updatedSites = localSites.toMutableList().apply {
-                                            this[targetIndex] = updatedSite
-                                        }
-                                        localSites = updatedSites
-                                        onSitesChanged(updatedSites)
+                                        sitesList[targetIndex] = updatedSite
+                                        localSites = sitesList
+                                        onSitesChanged(sitesList)
                                         loadingIndex = null
                                     },
                                     onFailure = { error ->
                                         // Still add the site even if metadata fetch fails
-                                        val updatedSite = localSites[targetIndex].copy(
+                                        val updatedSite = sitesList[targetIndex].copy(
                                             url = predefinedSite.url,
-                                            title = predefinedSite.url.removePrefix("https://").removePrefix("http://")
+                                            title = predefinedSite.name.ifBlank {
+                                                predefinedSite.url.removePrefix("https://").removePrefix("http://")
+                                            }
                                         )
-                                        val updatedSites = localSites.toMutableList().apply {
-                                            this[targetIndex] = updatedSite
-                                        }
-                                        localSites = updatedSites
-                                        onSitesChanged(updatedSites)
+                                        sitesList[targetIndex] = updatedSite
+                                        localSites = sitesList
+                                        onSitesChanged(sitesList)
                                         loadingIndex = null
                                     }
                                 )
@@ -212,7 +226,7 @@ fun SettingsScreen(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             
             Text(
                 text = "Handmatige configuratie",
@@ -311,6 +325,7 @@ fun SettingsScreen(
                     else -> link
                 }
                 val newSite = PredefinedSite(
+                    name = name.ifBlank { normalizedUrl.removePrefix("https://").removePrefix("http://") },
                     category = category,
                     url = normalizedUrl,
                     description = description
@@ -327,6 +342,7 @@ fun SettingsScreen(
         LoadFromUrlDialog(
             isLoading = isLoadingFromUrl,
             error = loadUrlError,
+            defaultUrl = predefinedSitesRepository.getRemoteSitesUrl() ?: predefinedSitesRepository.getDefaultSitesUrl(),
             onDismiss = { 
                 showLoadFromUrlDialog = false
                 loadUrlError = null
@@ -357,10 +373,11 @@ fun SettingsScreen(
 private fun LoadFromUrlDialog(
     isLoading: Boolean,
     error: String?,
+    defaultUrl: String,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit
 ) {
-    var url by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf(defaultUrl) }
     
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -392,7 +409,7 @@ private fun LoadFromUrlDialog(
                 }
                 
                 Text(
-                    text = "De JSON moet de volgende structuur hebben:\n{\n  \"sites\": [\n    {\n      \"category\": \"...\",\n      \"url\": \"...\",\n      \"description\": \"...\"\n    }\n  ]\n}",
+                    text = "De JSON moet de volgende structuur hebben:\n{\n  \"sites\": [\n    {\n      \"name\": \"...\",\n      \"category\": \"...\",\n      \"url\": \"...\",\n      \"description\": \"...\"\n    }\n  ]\n}",
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -539,7 +556,7 @@ private fun PredefinedSiteCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = site.url.removePrefix("https://").removePrefix("http://"),
+                    text = site.name.ifBlank { site.url.removePrefix("https://").removePrefix("http://") },
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )

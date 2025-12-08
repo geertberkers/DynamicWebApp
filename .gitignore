@@ -110,3 +110,4 @@ DerivedData/
 # macOS
 .DS_Store
 
+/.kotlin
