@@ -17,3 +17,9 @@ rootProject.name = "DynamicWebApp"
 include(":shared")
 include(":androidApp")
 
+
+
+
+
+
+
