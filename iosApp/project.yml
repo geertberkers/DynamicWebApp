@@ -1,0 +1,35 @@
+name: DynamicWebApp
+options:
+  bundleIdPrefix: com.dynamicwebapp
+  deploymentTarget:
+    iOS: "15.0"
+configs:
+  Debug: debug
+  Release: release
+settings:
+  base:
+    SWIFT_VERSION: 5.0
+    IPHONEOS_DEPLOYMENT_TARGET: 15.0
+    PRODUCT_BUNDLE_IDENTIFIER: com.dynamicwebapp.app
+    INFOPLIST_FILE: Info.plist
+    FRAMEWORK_SEARCH_PATHS: $(PROJECT_DIR)/../shared/build/xcode-frameworks/$(CONFIGURATION)
+targets:
+  DynamicWebApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: .
+        excludes:
+          - project.yml
+    prebuildScripts:
+      - name: Build shared XCFramework
+        script: |
+          set -e
+          cd "$PROJECT_DIR/.."
+          ./gradlew :shared:packForXcode -PXCODE_CONFIGURATION=${CONFIGURATION}
+        shell: /bin/bash
+        basedOnDependencyAnalysis: false
+    dependencies:
+      - framework: ../shared/build/xcode-frameworks/$(CONFIGURATION)/shared.xcframework
+        embed: true
+
